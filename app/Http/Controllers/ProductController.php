@@ -14,37 +14,16 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function getAllProducts(string $search)
     {
-        // $curl = curl_init();
+        $searchByName = Product::where('title', 'like', "%" . $search . "%")->orWhere('brands', 'like', "%" . $search . "%")->get();
+        $searchByCode = Product::where('codebar', '=', $search)->get();
 
-        // curl_setopt_array($curl, array(
-        // CURLOPT_URL => "https://world.openfoodfacts.org/api/v0/product/737628064502.json",
-        // CURLOPT_RETURNTRANSFER => true,
-        // CURLOPT_TIMEOUT => 30,
-        // CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        // CURLOPT_CUSTOMREQUEST => "GET",
-        // CURLOPT_HTTPHEADER => array(
-        //     "cache-control: no-cache"
-        // ),
-        // ));
-
-        // $response = curl_exec($curl);
-        $response = Http::get( 'https://world.openfoodfacts.org/api/v0/product/737628064502.json' );
-
-        // Array of data from the JSON response
-        $data = $response->json();
-        return $data['product'];
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        if (preg_match("/^\d+$/", $search)) {
+            return count($searchByCode) > 0 ? $searchByCode : $this->getDataByCode($search);
+        }else{
+            return count($searchByName) > 0 ? $searchByName : $this->getDataByName($search);
+        }
     }
 
     /**
@@ -53,26 +32,38 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function getDataByName(string $search)
     {
-        $product = new Product;
+        $response = Http::get( 'https://fr.openfoodfacts.org/cgi/search.pl?action=process&search_terms='.$search.'&json=true' );
+        $data = $response->json();
 
-        $product->codebar = $request->codebar;
-        $product->title = $request->title;
-        $product->nutriScore = $request->nutriScore;
-        $product->novaScore = $request->novaScore;
+        $products=[];
 
-        $url = $request->image;
-        $info = pathinfo($url);
-        $contents = file_get_contents($url);
-        $file = storage_path("images\products\\ ") . $product->codebar . '.' . $info['extension'];
-        file_put_contents($file, $contents);
-        $uploaded_file = new UploadedFile($file, $info['basename']);
-        // dd($uploaded_file);
-        $product->image = $file;
-        $product->save();
+        foreach ($data['products'] as $item) {
 
-        return response()->json($product);
+            $product = new Product;
+
+            if(isset($item['image_small_url'])){
+                $url = $item['image_small_url'];
+                $info = pathinfo($url);
+                $contents = file_get_contents($url);
+                $file = storage_path("images\products\product_") . $item['code'] . '.' . $info['extension'];
+                file_put_contents($file, $contents);
+            }
+
+            $newProduct = $product->firstOrCreate([
+                'codebar' => $item['code'],
+                'title' => $item['product_name'],
+                'brands' => $item['brands'],
+                'nutriScore' => isset( $item['nutrition_grades'] ) ? $item['nutrition_grades'] : null,
+                'novaScore' => isset( $item['nova_group'] ) ? $item['nova_group'] : null,
+                'image' => isset( $item['image_small_url'] ) ? $file : null,
+            ]);
+
+            array_push($products, $newProduct);
+        }
+
+        return $products;
     }
 
     /**
@@ -81,42 +72,36 @@ class ProductController extends Controller
      * @param  \App\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function show(Product $product)
+    public function getDataByCode(string $codebar)
     {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Product $product)
-    {
-        //
-    }
+        $response = Http::get( 'https://fr.openfoodfacts.org/api/v0/product/'.$codebar );
+        $data = $response->json();
+        $product = new Product;
+        $item = $data['product'];
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Product $product)
-    {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Product $product)
-    {
-        //
+        if(isset($item['image_small_url'])){
+            $url = $item['image_small_url'];
+            $info = pathinfo($url);
+            $contents = file_get_contents($url);
+            $file = storage_path("images\products\product_") . $item['code'] . '.' . $info['extension'];
+            file_put_contents($file, $contents);
+        }
+
+
+
+        $newProduct = $product->firstOrCreate([
+            'codebar' => $item['code'],
+            'title' => $item['product_name'],
+            'brands' => $item['brands'],
+            'nutriScore' => isset( $item['nutrition_grades'] ) ? $item['nutrition_grades'] : null,
+            'novaScore' => isset( $item['nova_group'] ) ? $item['nova_group'] : null,
+            'image' => isset( $item['image_small_url'] ) ? $file : null,
+        ]);
+
+
+        return $newProduct;
+
     }
 }

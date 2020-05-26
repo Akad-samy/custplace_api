@@ -17,8 +17,9 @@ class CreateProductsTable extends Migration
             $table->id();
             $table->string('codebar')->unique();
             $table->string('title');
-            $table->string('nutriScore');
-            $table->string('novaScore');
+            $table->string('brands');
+            $table->string('nutriScore')->nullable();
+            $table->string('novaScore')->nullable();
             $table->string('image');
             $table->timestamps();
         });
