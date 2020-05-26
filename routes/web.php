@@ -17,5 +17,5 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->get('products/{search}', 'ProductController@index');
+$router->get('products/{search}', 'ProductController@getAllProducts');
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\storeProducts;
 use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -36,32 +37,9 @@ class ProductController extends Controller
     {
         $response = Http::get( 'https://fr.openfoodfacts.org/cgi/search.pl?action=process&search_terms='.$search.'&json=true' );
         $data = $response->json();
-
         $products=[];
 
-        foreach ($data['products'] as $item) {
-
-            $product = new Product;
-
-            if(isset($item['image_small_url'])){
-                $url = $item['image_small_url'];
-                $info = pathinfo($url);
-                $contents = file_get_contents($url);
-                $file = storage_path("images\products\product_") . $item['code'] . '.' . $info['extension'];
-                file_put_contents($file, $contents);
-            }
-
-            $newProduct = $product->firstOrCreate([
-                'codebar' => $item['code'],
-                'title' => $item['product_name'],
-                'brands' => $item['brands'],
-                'nutriScore' => isset( $item['nutrition_grades'] ) ? $item['nutrition_grades'] : null,
-                'novaScore' => isset( $item['nova_group'] ) ? $item['nova_group'] : null,
-                'image' => isset( $item['image_small_url'] ) ? $file : null,
-            ]);
-
-            array_push($products, $newProduct);
-        }
+        $this->dispatch(new storeProducts($data['products'], $products));
 
         return $products;
     }
@@ -94,7 +72,7 @@ class ProductController extends Controller
         $newProduct = $product->firstOrCreate([
             'codebar' => $item['code'],
             'title' => $item['product_name'],
-            'brands' => $item['brands'],
+            'brands' => isset( $item['brands'] ) ? $item['brands'] : null,
             'nutriScore' => isset( $item['nutrition_grades'] ) ? $item['nutrition_grades'] : null,
             'novaScore' => isset( $item['nova_group'] ) ? $item['nova_group'] : null,
             'image' => isset( $item['image_small_url'] ) ? $file : null,
