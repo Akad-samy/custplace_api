@@ -15,7 +15,7 @@ class Product extends Model
      * @var array
      */
     protected $fillable = [
-        'codebar', 'title', 'brands', 'nutriScore', 'novaScore', 'image'
+        'codebar', 'title', 'brand', 'nutri_score', 'nova_group', 'image'
     ];
 
     public function reviews() {

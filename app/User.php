@@ -16,7 +16,7 @@ class User extends Model
      * @var array
      */
     protected $fillable = [
-        'nom', 'prenom', 'email'
+        'last_name', 'first_name', 'email'
     ];
 
     public function reviews() {

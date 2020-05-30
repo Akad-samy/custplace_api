@@ -39,13 +39,13 @@ class UserController extends Controller
         $user = new User();
 
         $this->validate($request, [
-            'nom' => 'required|string',
-            'prenom' => 'required|string',
+            'last_name' => 'required|string',
+            'first_name' => 'required|string',
             'email' => "required|string|email|unique:users,email,$user->id"
         ]);
 
-        $user->nom = $request->nom;
-        $user->prenom = $request->prenom;
+        $user->last_name = $request->last_name;
+        $user->first_name = $request->first_name;
         $user->email = $request->email;
         $user->save();
 
@@ -86,8 +86,8 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $user->update([
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
+            'last_name' => $request->last_name,
+            'first_name' => $request->first_name,
             'email' => $request->email,
         ]);
         return 'user updated succefully';

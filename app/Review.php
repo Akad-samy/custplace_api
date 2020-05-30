@@ -15,7 +15,7 @@ class Review extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id', 'product_id','commentaire', 'etoiles'
+        'user_id', 'product_id','comment', 'rate'
     ];
 
     public function user() {
