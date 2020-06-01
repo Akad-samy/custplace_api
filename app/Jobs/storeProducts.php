@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Ingredient;
 use App\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class storeProducts extends Job
@@ -42,8 +44,18 @@ class storeProducts extends Job
 
             foreach ($data['products'] as $item) {
 
-                $product = new Product();
 
+                $ingredients = [];
+                if (isset($item['ingredients'])) {
+                    foreach ($item['ingredients'] as $i) {
+                        $ingredient = Ingredient::firstOrCreate([
+                            'label' => $i['text']
+                        ]);
+
+                        array_push($ingredients, $ingredient);
+                    }
+                }
+                // var_dump($ingredients);
                 if (isset($item['image_small_url'])) {
                     $url = $item['image_small_url'];
                     $info = pathinfo($url);
@@ -52,7 +64,7 @@ class storeProducts extends Job
                     file_put_contents($file, $contents);
                 }
 
-                $product->firstOrCreate([
+                $product = Product::firstOrCreate([
                     'codebar' => $item['code'],
                     'title' => isset($item['product_name']) ? $item['product_name'] : '',
                     'brand' => isset($item['brands']) ? $item['brands'] : '',
@@ -60,7 +72,9 @@ class storeProducts extends Job
                     'nova_group' => isset($item['nova_group']) ? $item['nova_group'] : '',
                     'image' => isset($item['image_small_url']) ? $file : '',
                 ]);
+                $product->ingredients()->saveMany($ingredients);
             };
+            // dd($product);
 
             ++$page;
 

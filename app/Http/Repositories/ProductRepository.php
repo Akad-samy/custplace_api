@@ -2,18 +2,21 @@
 
 namespace App\Http\Repositories;
 
+use App\Ingredient;
 use App\Jobs\storeProducts;
 use App\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class ProductRepository implements ProductInterface
 {
 
-    public function all() {
+    public function all()
+    {
 
-        if(preg_match("/^\d+$/", request('search'))) {
+        if (preg_match("/^\d+$/", request('search'))) {
             return $this->barcode(request('search'));
-        }else{
+        } else {
             return $this->title(request('search'));
         }
 
@@ -47,11 +50,13 @@ class ProductRepository implements ProductInterface
 
         dispatch(new storeProducts($title));
 
-        // sleep(5);
+
+
+        sleep(5);
 
         $products = Product::where('title', 'like', "%" . $title  . "%")
-        ->orWhere('brand', 'like', "%" . $title . "%")
-        ->paginate(10);
+            ->orWhere('brand', 'like', "%" . $title . "%")
+            ->paginate(10);
 
         return $products;
     }

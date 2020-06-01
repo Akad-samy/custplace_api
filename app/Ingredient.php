@@ -19,6 +19,6 @@ class Ingredient extends Model
     ];
 
     public function products() {
-        return $this->belongsToMany(Product::class);
+        return $this->belongsToMany(Product::class, 'ingredient_product');
     }
 }
