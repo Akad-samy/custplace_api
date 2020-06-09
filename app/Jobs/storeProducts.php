@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Ingredient;
 use App\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class storeProducts extends Job
@@ -60,7 +61,7 @@ class storeProducts extends Job
                         array_push($ingredients, $ingredient);
                     }
                 }
-                // code being reused in productRepository
+
                 if (isset($item['image_small_url'])) {
                     $url = $item['image_small_url'];
                     $info = pathinfo($url);
