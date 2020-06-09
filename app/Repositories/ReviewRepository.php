@@ -18,7 +18,7 @@ class ReviewRepository implements ReviewInterface
         $this->userInterface = $userInterface;
     }
 
-    
+
     public function store($request, $product_codebar)
     {
 
@@ -37,7 +37,7 @@ class ReviewRepository implements ReviewInterface
         }else{
             return "Couldn't find a Record of The Product ID You've Provided";
         }
-    
+
     }
 
 
@@ -45,7 +45,7 @@ class ReviewRepository implements ReviewInterface
     {
 
         $review = Review::with('user')->where('product_id', $product_codebar)->paginate(5);
-        
+
         if(count($review) == 0){
             return "Couldn't find a Record of The Product ID You've Provided";
         }else{

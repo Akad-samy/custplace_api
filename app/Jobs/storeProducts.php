@@ -8,6 +8,9 @@ use App\Interfaces\ProductInterface;
 class StoreProducts extends Job
 {
 
+
+
+
     /**
      * @var string
      */
