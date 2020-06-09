@@ -21,4 +21,8 @@ class Ingredient extends Model
     public function products() {
         return $this->belongsToMany(Product::class, 'ingredient_product');
     }
+
+    public function format() {
+        return $this->label;
+    }
 }

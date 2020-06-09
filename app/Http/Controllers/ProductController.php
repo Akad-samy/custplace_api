@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Repositories\ProductInterface as ProductInterface;
+use App\Interfaces\ProductInterface as ProductInterface;
 
 class ProductController extends Controller
 {
-    /**
-     * @var App\Http\Repositories\ProductInterface
-     */
     private $productInterface;
 
     public function __construct(ProductInterface $productInterface) {
@@ -22,7 +19,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return $this->productInterface->all();
+        return $this->productInterface->all(request('search'), request('page_size'), request('page'));
     }
 
 }
