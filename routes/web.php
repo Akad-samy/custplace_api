@@ -11,11 +11,10 @@
 |
 */
 
-use App\Http\Controllers\UserController;
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
-
+//Product Routes:
 $router->get('products', 'ProductController@index');
+//Review Routes
+$router->post('reviews/{product_codebar}', ['uses' => 'ReviewController@store']);
+$router->get('reviews/{product_codebar}',  ['uses' => 'ReviewController@index']);
 
