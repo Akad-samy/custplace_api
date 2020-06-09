@@ -7,6 +7,7 @@ use App\Jobs\storeProducts;
 use App\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 
 class ProductRepository implements ProductInterface
 {
@@ -48,6 +49,7 @@ class ProductRepository implements ProductInterface
     public function title(string $title)
     {
 
+        //why this function is insiade braces
         dispatch(new storeProducts($title));
 
 
@@ -80,7 +82,7 @@ class ProductRepository implements ProductInterface
             $url = $item['image_small_url'];
             $info = pathinfo($url);
             $contents = file_get_contents($url);
-            $file = storage_path("images\products\product_") . $item['code'] . '.' . $info['extension'];
+            $file = storage_path("images/products/product_") . $item['code'] . '.' . $info['extension'];
             file_put_contents($file, $contents);
         }
 

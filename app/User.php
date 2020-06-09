@@ -9,7 +9,6 @@ class User extends Model
 
     protected $table = 'users';
 
-
     /**
      * The attributes that are mass assignable.
      *

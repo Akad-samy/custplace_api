@@ -4,6 +4,13 @@ namespace App\Providers;
 
 use App\Http\Repositories\ProductInterface;
 use App\Http\Repositories\ProductRepository;
+
+use App\Interfaces\ReviewInterface;
+use App\Interfaces\UserInterface;
+
+use App\Repositories\ReviewRepository;
+use App\Repositories\UserRepository;
+
 use Illuminate\Support\ServiceProvider;
 
 class RepositoriesServiceProvider extends ServiceProvider
@@ -25,6 +32,7 @@ class RepositoriesServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind(ReviewInterface::class, ReviewRepository::class);
+        $this->app->bind(UserInterface::class, UserRepository::class);
     }
 }
