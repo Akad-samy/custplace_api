@@ -22,4 +22,15 @@ class ProductController extends Controller
         return $this->productInterface->all(request('search'), request('page_size'), request('page'));
     }
 
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function show($product_codebar)
+    {
+        return $this->productInterface->barcode($product_codebar);
+    }
+
+
 }
