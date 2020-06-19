@@ -49,12 +49,14 @@ class ProductRepository implements ProductInterface
         $items = [];
 
         if (count($myData) < $page_size) {
-
-            dispatch(new StoreProducts($title, $page_size, $page));
-
             $products = $this->originalData->title($title, $page_size, $page);
-            foreach ($products['products'] as $product) {
-                $items[] = $product;
+            if($products['count'] == 0){
+                return 'product not found';
+            }else {
+                dispatch(new StoreProducts($title, $page_size, $page));
+                foreach ($products['products'] as $product) {
+                    $items[] = $product;
+                }
             }
 
         } else {
@@ -80,8 +82,12 @@ class ProductRepository implements ProductInterface
         if($data != null) {
             return $this->format($data);
         }else {
-            $this->store($product);
-            return $product;
+            if($product != 0) {
+                $this->store($product);
+                return $product;
+            }else{
+                return 'product not found';
+            }
         }
 
     }

@@ -18,8 +18,14 @@ class OriginalStoreRepository implements OriginalStoreInterface
     public function barcode($code)
     {
         $response = Http::get($this->URL . 'api/v0/product/' . $code);
-        $product = $response->json()['product'];
-        return $this->format($product);
+
+        if($response['status'] == 1){
+            $product = $response->json()['product'];
+            return $this->format($product);
+        }else {
+            return $response['status'];
+        }
+
 
     }
 

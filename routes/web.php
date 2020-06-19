@@ -14,6 +14,7 @@
 
 //Product Routes:
 $router->get('products', 'ProductController@index');
+$router->get('products/{product_codebar}', 'ProductController@show');
 //Review Routes
 $router->post('products/{product_codebar}/reviews', ['uses' => 'ReviewController@store']);
 $router->get('products/{product_codebar}/reviews',  ['uses' => 'ReviewController@index']);
