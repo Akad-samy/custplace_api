@@ -10,14 +10,12 @@ class IngredientRepository implements IngredientInterface
     public function store($product)
     {
         $ingredients = [];
-        if (isset($product)) {
-            foreach ($product as $i) {
-                $ingredient = Ingredient::firstOrCreate([
-                    'label' => $i
-                ]);
+        foreach ($product as $i) {
+            $ingredient = Ingredient::firstOrCreate([
+                'label' => $i['text']
+            ]);
 
-                array_push($ingredients, $ingredient);
-            }
+            array_push($ingredients, $ingredient);
         }
         return $ingredients;
     }

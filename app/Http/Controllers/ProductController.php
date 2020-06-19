@@ -29,7 +29,7 @@ class ProductController extends Controller
      */
     public function show($product_codebar)
     {
-        return $this->productInterface->barcode($product_codebar);
+        return $this->productInterface->getByBarcode($product_codebar);
     }
 
 
