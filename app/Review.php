@@ -15,14 +15,28 @@ class Review extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id', 'product_id','comment', 'rate'
+        'user_id', 'product_id', 'comment', 'rate'
     ];
-        
-    public function user() {
+
+
+
+    protected $hidden = [
+        'updated_at', 'user_id', 'created_at'
+    ];
+
+    protected $appends =['published_at'];
+    
+    public function getPublishedAtAttribute(){
+                return $this->created_at->diffForHumans();
+    }
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function product() {
+    public function product()
+    {
         return $this->belongsTo(Product::class);
     }
 }

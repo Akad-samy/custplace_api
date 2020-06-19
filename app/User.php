@@ -17,6 +17,9 @@ class User extends Model
     protected $fillable = [
         'last_name', 'first_name', 'email'
     ];
+    protected $hidden = [
+        'created_at', 'updated_at'
+    ];
 
     public function reviews() {
         return $this->hasMany(Review::class);

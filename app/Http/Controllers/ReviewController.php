@@ -31,6 +31,6 @@ class ReviewController extends Controller
 
     public function index($product_codebar)
     {
-        return $this->reviewInterface->index($product_codebar);
+        return $this->reviewInterface->index($product_codebar, request('limit'), request('page'));
     }
 }

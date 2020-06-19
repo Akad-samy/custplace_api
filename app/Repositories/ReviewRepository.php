@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Http\Resources\ReviewCollection;
 use App\Interfaces\ReviewInterface;
 use App\Interfaces\UserInterface;
 use App\Review;
@@ -23,34 +24,36 @@ class ReviewRepository implements ReviewInterface
     {
 
         $product = Product::where('codebar', $product_codebar)->first();
-        $review = new Review();
+        $user = $this->userInterface->store($request);
 
-        if(!is_null($product)){
+        $review = new Review();
+        try {
             //Storing Review in Db:
             $review->comment = $request->comment;
             $review->rate = $request->rate;
             $review->product()->associate($product->codebar);
             //Calling UserInterface Store() function the latter returns the User Id:
-            $review->user()->associate($this->userInterface->store($request));
+            $review->user()->associate($user->id);
             $review->save();
-            return response()->json($review, 201);
-        }else{
-            return "Couldn't find a Record of The Product ID You've Provided";
+        } catch (\Exception $e) {
+             
+            return $e->getCode();
         }
 
+
+        return response()->json($review, 201);
     }
 
 
-    public function index($product_codebar)
+    public function index($product_codebar, $limit, $page)
     {
+        is_null($limit) ? $limit = 5 : $limit;
+        is_null($page) ? $page = 1 : $page;
 
-        $review = Review::with('user')->where('product_id', $product_codebar)->paginate(5);
+        $reviews = Review::with('user')->where('product_id', $product_codebar)->paginate($limit, ['*'], 'page', $page);
 
-        if(count($review) == 0){
-            return "Couldn't find a Record of The Product ID You've Provided";
-        }else{
-            return response()->json($review, 200);
-
-        }
+        
+         return new ReviewCollection($reviews);
     }
 }
+
