@@ -39,9 +39,8 @@ class StoreProducts extends Job
      */
     public function handle(OriginalStoreInterface $originalData, ProductInterface $productInterface)
     {
-        $data = $originalData->title($this->title, $this->page_size, $this->page);
+        $data = $originalData->getByTitle($this->title, $this->page_size, $this->page);
         $products = $data['products'];
-
         foreach ($products as $product) {
             $productInterface->store($product);
         }

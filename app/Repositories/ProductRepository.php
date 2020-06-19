@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductResource;
 use App\Interfaces\IngredientInterface;
 use App\Interfaces\OriginalStoreInterface;
 use App\Interfaces\ProductInterface;
@@ -24,9 +26,9 @@ class ProductRepository implements ProductInterface
     {
 
         if (preg_match("/^\d+$/", $product)) {
-            return $this->barcode($product);
+            return $this->getByBarcode($product);
         } else {
-            return $this->title($product, $page_size, $page);
+            return $this->getByTitle($product, $page_size, $page);
         }
     }
 
@@ -38,7 +40,7 @@ class ProductRepository implements ProductInterface
      * @return \Illuminate\Http\Response.
      *
      */
-    public function title(string $title, $page_size, $page)
+    public function getByTitle(string $title, $page_size, $page)
     {
 
         $myData =  Product::where('title', 'like', "%" . $title . "%")
@@ -46,25 +48,14 @@ class ProductRepository implements ProductInterface
             ->with('ingredients:label')
             ->paginate($page_size, ['*'], 'page', $page);
 
-        $items = [];
 
         if (count($myData) < $page_size) {
-            $products = $this->originalData->title($title, $page_size, $page);
-            if($products['count'] == 0){
-                return 'product not found';
-            }else {
-                dispatch(new StoreProducts($title, $page_size, $page));
-                foreach ($products['products'] as $product) {
-                    $items[] = $product;
-                }
-            }
-
+            $products = $this->originalData->getByTitle($title, $page_size, $page);
+            dispatch(new StoreProducts($title, $page_size, $page));
+            return $products;
         } else {
-            foreach ($myData->items() as $item) {
-                $items[] = $this->format($item);
-            }
+            return new ProductCollection($myData);
         }
-        return $items;
     }
 
     /**
@@ -73,23 +64,23 @@ class ProductRepository implements ProductInterface
      * @param  \App\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function barcode(string $barcode)
+    public function getByBarcode(string $barcode)
     {
-        $product = $this->originalData->barcode($barcode);
+        $product = $this->originalData->getByBarcode($barcode);
         $data = Product::where('codebar', $barcode)->first();
 
-
-        if($data != null) {
-            return $this->format($data);
-        }else {
-            if($product != 0) {
-                $this->store($product);
+        try {
+            if ($data != null) {
+                return new ProductResource(Product::where('codebar', $barcode)->first());;
+            } else {
+                if ($product['status'] === 1) {
+                    $this->store($product['product']);
+                }
                 return $product;
-            }else{
-                return 'product not found';
             }
+        } catch (\Throwable $th) {
+            return $th->getMessage();
         }
-
     }
 
     /**
@@ -98,56 +89,34 @@ class ProductRepository implements ProductInterface
      * @param  \App\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function store($product)
+    public function store($request)
     {
+        try {
+            $productIngredients = [];
 
-        $productIngredients = [];
-
-        if (isset($product['image'])) {
-            $url = $product['image'];
-            $info = pathinfo($url);
-            $contents = file_get_contents($url);
-            $file = storage_path("images\products\product_") . $product['codebar'] . '.' . $info['extension'];
-            file_put_contents($file, $contents);
-        }
-
-        if (isset($product['ingredients'])) {
-            $productIngredients = $this->ingredients->store($product['ingredients']);
-        }
-
-        $data = Product::firstOrCreate([
-            'codebar' => $product['codebar'],
-            'title' => isset($product['title']) ? $product['title'] : '',
-            'brand' => isset($product['brand']) ? $product['brand'] : '',
-            'nutri_score' => isset($product['nutri_score']) ? $product['nutri_score'] : '',
-            'nova_group' => isset($product['nova_group']) ? $product['nova_group'] : '',
-            'image' => isset($product['image']) ? $file : '',
-        ]);
-        $data->ingredients()->saveMany($productIngredients);
-
-
-        return [
-            "product" => $data,
-            "ingredients" => $productIngredients,
-        ];
-    }
-
-    public function format($data) {
-        $ingredients = [];
-        if (isset($data['ingredients'])) {
-            foreach ($data['ingredients'] as $i) {
-                $ingredients[] = $i['label'];
+            if (isset($request['image_small_url'])) {
+                $url = $request['image_small_url'];
+                $info = pathinfo($url);
+                $contents = file_get_contents($url);
+                $file = storage_path("images\products\product_") . $request['code'] . '.' . $info['extension'];
+                file_put_contents($file, $contents);
             }
+
+            if (isset($request['ingredients'])) {
+                $productIngredients = $this->ingredients->store($request['ingredients']);
+            }
+
+            $data = Product::firstOrCreate([
+                'codebar' => $request['code'],
+                'title' => isset($request['product_name']) ? $request['product_name'] : '',
+                'brand' => isset($request['brands']) ? $request['brands'] : '',
+                'nutri_score' => isset($request['nutrition_grades']) ? $request['nutrition_grades'] : '',
+                'nova_group' => isset($request['nova_group']) ? $request['nova_group'] : '',
+                'image' => isset($request['image_small_url']) ? $file : '',
+            ]);
+            $data->ingredients()->saveMany($productIngredients);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
         }
-        $product = [
-            'codebar' => $data['codebar'],
-            'title' => $data['title'],
-            'brand' => $data['brand'],
-            'nutri_score' => $data['nutri_score'],
-            'nova_group' => $data['nova_group'],
-            'image' => $data['image'],
-            'ingredients' => $ingredients,
-        ];
-        return $items[] = $product;
     }
 }
