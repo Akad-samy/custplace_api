@@ -8,7 +8,7 @@ use App\Interfaces\UserInterface;
 use App\Review;
 
 use App\Product;
-
+use Exception;
 
 class ReviewRepository implements ReviewInterface
 {
@@ -25,22 +25,18 @@ class ReviewRepository implements ReviewInterface
 
         $product = Product::where('codebar', $product_codebar)->first();
         $user = $this->userInterface->store($request);
-
         $review = new Review();
-        try {
+        
+        if(!is_null($product)){
             //Storing Review in Db:
             $review->comment = $request->comment;
             $review->rate = $request->rate;
             $review->product()->associate($product->codebar);
-            //Calling UserInterface Store() function the latter returns the User Id:
             $review->user()->associate($user->id);
             $review->save();
-        } catch (\Exception $e) {
-             
-            return $e->getCode();
+        }else{
+            throw new Exception('Product not Found');
         }
-
-
         return response()->json($review, 201);
     }
 

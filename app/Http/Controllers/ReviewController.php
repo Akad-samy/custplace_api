@@ -9,15 +9,16 @@ class ReviewController extends Controller
 {
     //injection of the review Interface
     private $reviewInterface;
-    public function __construct(ReviewInterface $reviewInterface) {
+    public function __construct(ReviewInterface $reviewInterface)
+    {
         $this->reviewInterface = $reviewInterface;
     }
 
-    
+
     public function store(Request $request, $product_codebar)
     {
-         // Perform Validation
-          $this->validate($request, array(
+        // Perform Validation
+        $this->validate($request, array(
             'last_name' => 'required|max:50',
             'first_name' => 'required|max:50',
             'email' => 'required|email|max:255',
@@ -25,7 +26,14 @@ class ReviewController extends Controller
             'rate' => 'required|numeric|min:1|max:5'
         ));
 
-        return $this->reviewInterface->store($request, $product_codebar);  
+        try {
+            return $this->reviewInterface->store($request, $product_codebar);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => $th->getCode(),
+                'message' => $th->getMessage()
+            ]);
+        }
     }
 
 
