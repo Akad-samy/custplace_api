@@ -14,7 +14,7 @@ class OriginalStoreRepository implements OriginalStoreInterface
 
     public function __construct()
     {
-        $this->URL = "https://fr.opnfoodfacts.org/";
+        $this->URL = "https://fr.openfoodfacts.org/";
     }
 
     public function getByBarcode($code)
