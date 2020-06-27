@@ -19,7 +19,14 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return $this->productInterface->all(request('search'), request('page_size'), request('page'));
+        try {
+            return $this->productInterface->all(request('search'), request('page_size'), request('page'));
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => $th->getCode(),
+                'message' => $th->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -29,7 +36,15 @@ class ProductController extends Controller
      */
     public function show($product_codebar)
     {
-        return $this->productInterface->getByBarcode($product_codebar);
+        try {
+            return $this->productInterface->getByBarcode($product_codebar);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => $th->getCode(),
+                'message' => $th->getMessage()
+            ]);
+        }
+
     }
 
 

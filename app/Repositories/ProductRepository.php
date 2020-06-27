@@ -9,6 +9,7 @@ use App\Interfaces\OriginalStoreInterface;
 use App\Interfaces\ProductInterface;
 use App\Jobs\StoreProducts;
 use App\Product;
+use Exception;
 
 class ProductRepository implements ProductInterface
 {
@@ -47,10 +48,13 @@ class ProductRepository implements ProductInterface
             ->orWhere('brand', 'like', "%" . $title . "%")
             ->with('ingredients:label')
             ->paginate($page_size, ['*'], 'page', $page);
-
+        $products = $this->originalData->getByTitle($title, $page_size, $page);
 
         if (count($myData) < $page_size) {
-            $products = $this->originalData->getByTitle($title, $page_size, $page);
+
+            if(!isset($products['products'])){
+                throw new Exception('OpenFoodFact server is not available');
+            }
             dispatch(new StoreProducts($title, $page_size, $page));
             return $products;
         } else {
@@ -69,17 +73,15 @@ class ProductRepository implements ProductInterface
         $product = $this->originalData->getByBarcode($barcode);
         $data = Product::where('codebar', $barcode)->first();
 
-        try {
-            if ($data != null) {
-                return new ProductResource(Product::where('codebar', $barcode)->first());;
+        if ($data != null) {
+            return new ProductResource($data);
+        } else {
+            if (!isset($product['status'])) {
+                throw new Exception('OpenFoodFact server is not available');
             } else {
-                if ($product['status'] === 1) {
-                    $this->store($product['product']);
-                }
-                return $product;
+                $this->store($product['product']);
             }
-        } catch (\Throwable $th) {
-            return $th->getMessage();
+            return $product;
         }
     }
 
@@ -91,7 +93,6 @@ class ProductRepository implements ProductInterface
      */
     public function store($request)
     {
-        try {
             $productIngredients = [];
 
             if (isset($request['image_small_url'])) {
@@ -115,8 +116,5 @@ class ProductRepository implements ProductInterface
                 'image' => isset($request['image_small_url']) ? $file : '',
             ]);
             $data->ingredients()->saveMany($productIngredients);
-        } catch (\Throwable $th) {
-            return $th->getMessage();
-        }
     }
 }
