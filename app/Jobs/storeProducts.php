@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\Interfaces\OriginalStoreInterface;
 use App\Interfaces\ProductInterface;
 
-class storeProducts extends Job
+class StoreProducts extends Job
 {
 
 
