@@ -73,18 +73,25 @@ class ProductRepository implements ProductInterface
         $product = $this->originalData->getByBarcode($barcode);
         $data = Product::where('codebar', $barcode)->first();
 
-        if ($data != null) {
-            return new ProductResource($data);
-        } else {
-            if (!isset($product['status'])) {
-                throw new Exception('OpenFoodFact server is not available');
-            } else {
-                $this->store($product['product']);
-            }
-            return $product;
-        }
-    }
+    //     if ($data != null) {
+    //         return new ProductResource($data);
+    //     } else {
+    //         if (!isset($product['status'])) {
+    //             throw new Exception('OpenFoodFact server is not available');
+    //         } else {
+    //             $this->store($product['product']);
+    //         }
+    //         return $product;
+    //     }
+    // }
 
+    if (!isset($product['status'])) {
+        throw new Exception('OpenFoodFact server is not available');
+    } else {
+        $this->store($product['product']);
+    }
+    return $product;
+}
     /**
      * Display the specified resource.
      *
@@ -99,7 +106,9 @@ class ProductRepository implements ProductInterface
                 $url = $request['image_small_url'];
                 $info = pathinfo($url);
                 $contents = file_get_contents($url);
-                $file = storage_path("images\products\product_") . $request['code'] . '.' . $info['extension'];
+                //the line below wwill store images inside Storage folder
+                // $file = storage_path("images\products\product_") . $request['code'] . '.' . $info['extension'];
+                $file = base_path("public/images/products/product_") . $request['code'] . '.' . $info['extension'];
                 file_put_contents($file, $contents);
             }
 
@@ -113,7 +122,7 @@ class ProductRepository implements ProductInterface
                 'brand' => isset($request['brands']) ? $request['brands'] : '',
                 'nutri_score' => isset($request['nutrition_grades']) ? $request['nutrition_grades'] : '',
                 'nova_group' => isset($request['nova_group']) ? $request['nova_group'] : '',
-                'image' => isset($request['image_small_url']) ? $file : '',
+                'image' => isset($request['image_small_url']) ? "/product_" . $request['code'] . '.' . $info['extension']: '',
             ]);
             $data->ingredients()->saveMany($productIngredients);
     }
